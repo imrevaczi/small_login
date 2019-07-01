@@ -1,0 +1,53 @@
+body {
+  padding-top: 5rem;
+}
+header {
+  padding: 1.5rem;
+  text-align: center;
+}
+.error {
+    border: 2px solid red ;
+    padding: 1rem ;
+    margin-bottom: 1rem ;
+}
+
+fieldset {
+    border: 1px solid grey ;
+    padding: 1rem 1rem 0 1rem ;
+    margin-bottom: 1rem;
+}
+
+fieldset span {
+    vertical-align: text-top ;
+    padding-left: 2px ;
+}
+
+label {
+    min-width: 150px;
+}
+
+table thead th {
+    background-color: #000 ;
+    color: #fff;
+}
+footer {
+    margin-top: 2rem;
+    border-top: 1px solid #ccc ;
+    padding: 1rem;
+    text-align: center ;
+}
+.bd-placeholder-img {
+    font-size: 1.125rem;
+    text-anchor: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+@media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+    }
+}
+
