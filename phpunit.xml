@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheResultFile=".phpunit.result.cache"
+         executionOrder="depends,defects"
+         forceCoversAnnotation="false"
+         beStrictAboutCoversAnnotation="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTodoAnnotatedTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         verbose="true">
+    <testsuites>
+        <testsuite name="Small Login Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">classes</directory>
+        </include>
+        <exclude>
+            <file>classes/Autoloader.php</file>
+        </exclude>
+    </coverage>
+
+    <php>
+        <env name="DB_HOST" value="localhost"/>
+        <env name="DB_NAME" value="test_small_login"/>
+        <env name="DB_USER" value="test_user"/>
+        <env name="DB_PASS" value="test_pass"/>
+    </php>
+</phpunit>

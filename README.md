@@ -41,11 +41,49 @@ The system stores user data with the following fields:
 3. **Access**: 
    - Navigate to [`index.php`](index.php) in your web browser to start using the system
 
+## Testing
+
+This project includes a comprehensive test suite with 60+ tests covering:
+
+- **Unit Tests** - Individual class and method testing
+- **Integration Tests** - End-to-end workflow testing
+- **Security Tests** - Vulnerability and security analysis
+
+### Running Tests
+
+```bash
+# Install dependencies
+composer install
+
+# Run all tests
+./vendor/bin/phpunit
+
+# Run specific test file
+./vendor/bin/phpunit tests/ValidateTest.php
+
+# Run with coverage report
+./vendor/bin/phpunit --coverage-text
+
+# Use custom test runner
+php run-tests.php
+```
+
+### Test Documentation
+
+- [`tests/README.md`](tests/README.md) - Comprehensive test documentation
+- [`TEST_RESULTS.md`](TEST_RESULTS.md) - Test results and security analysis
+- [`phpunit.xml`](phpunit.xml) - PHPUnit configuration
+
+**Note**: Tests identify several security vulnerabilities in the original code that should be addressed before production use.
+
 ## Project Structure
 
 - [`classes/`](classes/) - Contains core PHP classes for database, user management, and validation
 - [`config/`](config/) - Database configuration files
 - [`templates/`](templates/) - HTML template files for different pages
+- [`tests/`](tests/) - Comprehensive test suite (unit, integration, security tests)
 - [`index.php`](index.php) - Main entry point
 - [`settings.php`](settings.php) - Application settings and initialization
 - [`style.css`](style.css) - Custom styling
+- [`composer.json`](composer.json) - PHP dependency management
+- [`phpunit.xml`](phpunit.xml) - Test configuration
