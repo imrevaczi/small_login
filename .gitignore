@@ -1,2 +1,26 @@
 nbproject/* 
 config/db.php
+
+# Composer dependencies
+vendor/
+composer.phar
+
+# PHPUnit cache and results
+.phpunit.result.cache
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
