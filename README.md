@@ -87,7 +87,7 @@ php run-tests.php
 **Note**: Tests identify several security vulnerabilities in the original code that should be addressed before production use.
 
 ## Project Structure
-
+```
 small_login/
 ├── classes/           # Core PHP classes
 │   ├── Db.php        # Database connection and prepared statements
