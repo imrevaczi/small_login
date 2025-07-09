@@ -96,6 +96,72 @@ class Db {
         return $result;
     }
 
+    // Secure prepared statement method
+    public static function prepare_and_execute($query, $types = "", $params = []) {
+        global $Db;
+        $mysql = $Db->connect();
+        if (!$mysql) {
+            if (DEBUG) {
+                echo "<br />Connection error in prepared statement.";
+            }
+            return false;
+        }
+
+        $stmt = mysqli_prepare($mysql, $query);
+        if (!$stmt) {
+            if (DEBUG) {
+                echo "<br />Prepare failed: " . mysqli_error($mysql);
+            }
+            mysqli_close($mysql);
+            return false;
+        }
+
+        // Bind parameters if provided
+        if (!empty($types) && !empty($params)) {
+            if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
+                if (DEBUG) {
+                    echo "<br />Binding parameters failed: " . mysqli_stmt_error($stmt);
+                }
+                mysqli_stmt_close($stmt);
+                mysqli_close($mysql);
+                return false;
+            }
+        }
+
+        // Execute the statement
+        if (!mysqli_stmt_execute($stmt)) {
+            if (DEBUG) {
+                echo "<br />Execute failed: " . mysqli_stmt_error($stmt);
+            }
+            mysqli_stmt_close($stmt);
+            mysqli_close($mysql);
+            return false;
+        }
+
+        // Get the result
+        $result = mysqli_stmt_get_result($stmt);
+        
+        // For INSERT statements, return the insert ID
+        if ($result === false && strpos(strtoupper($query), 'INSERT') === 0) {
+            $insert_id = mysqli_insert_id($mysql);
+            mysqli_stmt_close($stmt);
+            mysqli_close($mysql);
+            return $insert_id;
+        }
+
+        // For other statements that don't return a result set
+        if ($result === false) {
+            $affected_rows = mysqli_stmt_affected_rows($stmt);
+            mysqli_stmt_close($stmt);
+            mysqli_close($mysql);
+            return $affected_rows > 0;
+        }
+
+        mysqli_stmt_close($stmt);
+        mysqli_close($mysql);
+        return $result;
+    }
+
     public static function createDatabase($kapcsolat, $database) {
         $query = 'CREATE DATABASE ' . $database . ' DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;';
         $result = mysqli_query($kapcsolat, $query);
