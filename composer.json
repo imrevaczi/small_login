@@ -1,0 +1,25 @@
+{
+    "name": "imrevaczi/small_login",
+    "description": "A simple PHP login system with MySQL and Bootstrap 4",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SmallLogin\\": "classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SmallLogin\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage"
+    }
+}
