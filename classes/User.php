@@ -52,14 +52,20 @@ class User {
         return $this->is_logged_in;
     }
 
-    // Login
+    // Login - ENHANCED with better input validation
 
     public function login() {
 
         if (!empty($_POST['username']) && !empty($_POST['password'])) {
 
-            $this->username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
-            $this->password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
+            // Enhanced input sanitization for login
+            $rawUsername = filter_input(INPUT_POST, 'username', FILTER_UNSAFE_RAW);
+            $rawPassword = filter_input(INPUT_POST, 'password', FILTER_UNSAFE_RAW);
+            
+            // Username: only allow alphanumeric, underscore, and hyphen
+            $this->username = preg_replace('/[^a-zA-Z0-9_-]/', '', $rawUsername);
+            // Password: keep as-is but ensure it's a string and limit length
+            $this->password = is_string($rawPassword) ? substr($rawPassword, 0, 255) : '';
 
             if ($row = $this->verify_password()) {
                 session_regenerate_id(true);
@@ -84,24 +90,28 @@ class User {
         }
     }
 
-    // Check if username and password match
+    // Check if username and password match - SECURE VERSION with prepared statements
 
     private function verify_password() {
-
-        $query = 'SELECT * FROM user '
-                . 'WHERE username = "' . $this->username . '" ' ;
-        $result = Db::query_db($query);
+        // Use prepared statement to prevent SQL injection
+        $query = 'SELECT * FROM user WHERE username = ? LIMIT 1';
+        $result = Db::prepare_and_execute($query, "s", [$this->username]);
+        
+        if (!$result) {
+            return false;
+        }
+        
         $user = false;
-        while ($sor = mysqli_fetch_assoc($result)) {
-            $user = $sor;
+        while ($row = mysqli_fetch_assoc($result)) {
+            $user = $row;
         }
         mysqli_free_result($result);
-        if ($user) {
-            if (password_verify($this->password, $user["password"])):
-                return $user ;
-            endif;
+        
+        if ($user && password_verify($this->password, $user["password"])) {
+            return $user;
         }
-        return FALSE ;
+        
+        return false;
     }
 
     // Logout function
@@ -116,27 +126,59 @@ class User {
         exit();
     }
 
-    // Get post data
+    // Get post data - ENHANCED with better input validation and sanitization
     public function get_post() {
-        $post = [] ;
-        $fields = Db::getUserFields() ;
+        $post = [];
+        $fields = Db::getUserFields();
+        
         foreach ($fields as $fld) {
-            switch ($fld["Field"]) {
+            $fieldName = $fld["Field"];
+            $rawValue = filter_input(INPUT_POST, $fieldName, FILTER_UNSAFE_RAW);
+            
+            switch ($fieldName) {
                 case "email":
-                    $post[$fld["Field"]] = filter_input(INPUT_POST, $fld["Field"], FILTER_SANITIZE_EMAIL) ;
+                    // Enhanced email validation and sanitization
+                    $post[$fieldName] = filter_var($rawValue, FILTER_SANITIZE_EMAIL);
                     break;
-                default :
-                    $post[$fld["Field"]] = filter_input(INPUT_POST, $fld["Field"], FILTER_SANITIZE_STRING) ;                    
+                case "username":
+                    // Username: only allow alphanumeric, underscore, and hyphen
+                    $post[$fieldName] = preg_replace('/[^a-zA-Z0-9_-]/', '', $rawValue);
+                    break;
+                case "firstname":
+                case "lastname":
+                    // Names: allow letters, spaces, apostrophes, and hyphens
+                    $post[$fieldName] = preg_replace('/[^a-zA-Z\s\'-]/', '', $rawValue);
+                    break;
+                case "mobile":
+                    // Mobile: only allow numbers, spaces, +, -, (, )
+                    $post[$fieldName] = preg_replace('/[^0-9\s\+\-\(\)]/', '', $rawValue);
+                    break;
+                case "password":
+                    // Password: keep as-is but ensure it's a string
+                    $post[$fieldName] = is_string($rawValue) ? $rawValue : '';
+                    break;
+                default:
+                    // Default: basic sanitization
+                    $post[$fieldName] = htmlspecialchars(strip_tags($rawValue), ENT_QUOTES, 'UTF-8');
+            }
+            
+            // Additional length validation
+            if (strlen($post[$fieldName]) > 100) {
+                $post[$fieldName] = substr($post[$fieldName], 0, 100);
             }
         }
-        $post["confirm"] = filter_input(INPUT_POST, "confirm", FILTER_SANITIZE_STRING) ;                           
-        return $post ;
+        
+        // Handle confirm password field
+        $confirmValue = filter_input(INPUT_POST, "confirm", FILTER_UNSAFE_RAW);
+        $post["confirm"] = is_string($confirmValue) ? $confirmValue : '';
+        
+        return $post;
     }
     
-    // Register a new user
+    // Register a new user - SECURE VERSION with prepared statements
     public function register() {
         
-        $post = $this->get_post() ;
+        $post = $this->get_post();
 
         if (!empty($post['username']) && !empty($post['password']) && !empty($post['confirm'])) {
 
@@ -144,14 +186,22 @@ class User {
 
                 $first_user = $this->empty_db();
                 $post["password"] = password_hash($post['password'], PASSWORD_DEFAULT);
-                unset($post["confirm"]) ;
-                $field_string = join(",", array_keys($post)) ;
-                $field_values = '"'.join('","', $post).'"' ;
-
-                $query = 'INSERT INTO user ('.$field_string.') '
-                        . 'VALUES ('.$field_values.')';
-                if (Db::query_db($query)) {
-
+                unset($post["confirm"]);
+                
+                // Build secure prepared statement for INSERT
+                $fields = array_keys($post);
+                $placeholders = str_repeat('?,', count($fields) - 1) . '?';
+                $field_string = implode(',', $fields);
+                
+                $query = 'INSERT INTO user (' . $field_string . ') VALUES (' . $placeholders . ')';
+                
+                // Create type string (all strings for user data)
+                $types = str_repeat('s', count($post));
+                $values = array_values($post);
+                
+                $result = Db::prepare_and_execute($query, $types, $values);
+                
+                if ($result) {
                     if ($first_user) {
                         session_regenerate_id(true);
                         $_SESSION['id'] = session_id();
@@ -165,11 +215,12 @@ class User {
                     // To avoid resending the form on refreshing
                     header('Location: ' . $_SERVER['REQUEST_URI']);
                     exit();
-                } else
+                } else {
                     $this->error[] = 'Username already exists.';
-            } else
+                }
+            } else {
                 $this->error[] = 'Passwords don\'t match.';
-            
+            }
         } 
         if (empty($post['username'])) {
             $this->error[] = 'Username field was empty.';
@@ -188,16 +239,22 @@ class User {
         }
     }
 
-    // Get info about an user
+    // Get info about an user - SECURE VERSION with prepared statements
     public function get_user_info($username) {
-        $query = 'SELECT * FROM user WHERE username = "' . $username . '" LIMIT 1';
-        $result = Db::query_db($query);
-        $userinfo = [] ;
-        while ($sor = mysqli_fetch_assoc($result)) {
-            $userinfo = $sor;
+        // Use prepared statement to prevent SQL injection
+        $query = 'SELECT * FROM user WHERE username = ? LIMIT 1';
+        $result = Db::prepare_and_execute($query, "s", [$username]);
+        
+        if (!$result) {
+            return [];
+        }
+        
+        $userinfo = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $userinfo = $row;
         }
         mysqli_free_result($result);
-        return $userinfo ;        
+        return $userinfo;
     }
     
     // Show error messages

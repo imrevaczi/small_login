@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../classes/Validate.php';
+
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -10,7 +13,10 @@ class EregFixTest extends TestCase
 {
     protected function setUp(): void
     {
-        resetGlobalState();
+        // Reset global state if needed
+        global $jog;
+        $jog = null;
+        $_SESSION = [];
     }
 
     public function testEregFunctionIsNotUsedInCode()
@@ -116,6 +122,6 @@ class EregFixTest extends TestCase
 
     protected function tearDown(): void
     {
-        resetGlobalState();
+        // Reset global state if needed
     }
 }
