@@ -1,6 +1,6 @@
 # Small Login System
 
-A simple and lightweight PHP-based user authentication system built with MySQL and Bootstrap 4. This project provides a secure foundation for user registration, login, and profile management with modern security practices.
+A simple and lightweight PHP-based user authentication system built with MySQL and Bootstrap 4. This project provides a secure foundation for user registration, login, and profile management with modern security practices—perfect for getting your next project up and running quickly!
 
 ## Features
 
@@ -49,42 +49,46 @@ The system stores user data with the following fields:
 ### 3. Launch
 - Navigate to [`index.php`](index.php) in your web browser
 - The system will automatically create the necessary database tables on first use
-- Start registering users and testing the login functionality!
+- Start registering users and testing the login functionality—you're all set!
 
 ## Project Structure
 
 ```
 small_login/
-├── classes/           # Core PHP classes
-│   ├── Db.php        # Database connection and prepared statements
-│   ├── User.php      # User authentication and management
-│   └── Validate.php  # Input validation and sanitization
-├── config/           # Configuration files
-│   └── db.sample.php # Database configuration template
-├── templates/        # HTML template files
-├── tests/           # PHPUnit test files
-│   ├── SqlInjectionTest.php  # Security tests
-│   └── EregFixTest.php       # Compatibility tests
-├── index.php        # Main application entry point
-├── settings.php     # Application settings and initialization
-└── style.css        # Custom styling
+├── classes/              # Core PHP classes
+│   ├── [Db.php](classes/Db.php)           # Database connection and prepared statements
+│   ├── [User.php](classes/User.php)         # User authentication and management
+│   ├── [SessionConfig.php](classes/SessionConfig.php) # Secure session configuration
+│   └── [Validate.php](classes/Validate.php)     # Input validation and sanitization
+├── config/              # Configuration files
+│   └── db.sample.php    # Database configuration template
+├── templates/           # HTML template files
+├── tests/              # PHPUnit test files
+│   ├── [SqlInjectionTest.php](tests/SqlInjectionTest.php)    # SQL injection security tests
+│   ├── [SessionSecurityTest.php](tests/SessionSecurityTest.php) # Session security tests
+│   └── [EregFixTest.php](tests/EregFixTest.php)         # Compatibility tests
+├── index.php           # Main application entry point
+├── settings.php        # Application settings and initialization
+└── style.css           # Custom styling
 ```
 
 ## Security Features
 
-This system implements multiple layers of security protection:
+This system implements multiple layers of security protection to keep your users safe:
 
 - **SQL Injection Prevention**: All database queries use prepared statements with parameter binding
-- **Input Validation**: Comprehensive sanitization of all user inputs
+- **Session Security**: Comprehensive session protection with HttpOnly, Secure, and SameSite=Strict cookie flags
+- **Input Validation**: Thorough sanitization of all user inputs
 - **Password Security**: Secure password hashing using PHP's `password_hash()` function
-- **Session Management**: Proper session handling and regeneration
-- **XSS Protection**: Input sanitization prevents cross-site scripting attacks
+- **CSRF Protection**: SameSite cookie attributes prevent cross-site request forgery
+- **XSS Protection**: Input sanitization and HttpOnly cookies prevent cross-site scripting attacks
+- **Session Hijacking Prevention**: Cookie-only sessions with no URL-based session IDs
 
 For detailed information about recent security improvements, see [`SECURITY_FIXES.md`](SECURITY_FIXES.md).
 
 ## Testing
 
-The project includes comprehensive test coverage:
+The project includes comprehensive test coverage to ensure everything works as expected:
 
 ```bash
 # Run all tests
@@ -92,10 +96,14 @@ The project includes comprehensive test coverage:
 
 # Run security-specific tests
 ./vendor/bin/phpunit tests/SqlInjectionTest.php
+
+# Run session security tests
+./vendor/bin/phpunit tests/SessionSecurityTest.php
 ```
 
 Tests cover:
 - SQL injection prevention
+- Session security and cookie protection
 - Input validation and sanitization
 - Email validation compatibility
 - Security boundary testing
