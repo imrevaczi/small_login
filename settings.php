@@ -36,6 +36,10 @@ if (file_exists($inifile)) {
 
 require_once(BASEDIR . '/classes/Validate.php');
 require_once(BASEDIR . '/classes/Helper.php');
+require_once(BASEDIR . '/classes/SessionConfig.php');
+
+// Configure secure session settings before starting session
+SessionConfig::configure();
 
 $Db = new Db();
 
