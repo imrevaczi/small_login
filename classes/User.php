@@ -10,7 +10,8 @@ class User {
 
     // Create a new user object
     public function __construct($Db) {
-       
+        
+        // Session security is configured in settings.php before this constructor
         session_start();
 
         if (isset($_GET['logout'])) {
@@ -73,9 +74,10 @@ class User {
                 $_SESSION['username'] = $this->username;
                 $_SESSION['is_logged_in'] = true;
                 $this->is_logged_in = true;
-                // Set a cookie that expires in one week
-                if (isset($_POST['remember']))
-                    setcookie('username', $this->username, time() + 604800);
+                // Set a secure cookie that expires in one week
+                if (isset($_POST['remember'])) {
+                    $this->set_secure_cookie('username', $this->username, time() + 604800);
+                }
                 // To avoid resending the form on refreshing
                 header('Location: ' . $_SERVER['REQUEST_URI']);
                 exit();
@@ -121,7 +123,8 @@ class User {
         session_unset();
         session_destroy();
         $this->is_logged_in = false;
-        setcookie('username', '', time() - 3600);
+        // Clear the remember me cookie securely
+        $this->set_secure_cookie('username', '', time() - 3600);
         header('Location: index.php');
         exit();
     }
@@ -279,6 +282,30 @@ class User {
         $query = 'SELECT * FROM user';
         $result = Db::query_db($query);
         return ($result->num_rows === 0);
+    }
+
+
+
+    /**
+     * Set a secure cookie with proper security flags
+     * 
+     * @param string $name Cookie name
+     * @param string $value Cookie value
+     * @param int $expire Expiration timestamp
+     * @param string $path Cookie path (default: '/')
+     * @param string $domain Cookie domain (default: '')
+     */
+    private function set_secure_cookie($name, $value, $expire, $path = '/', $domain = '') {
+        $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+        
+        setcookie($name, $value, [
+            'expires' => $expire,
+            'path' => $path,
+            'domain' => $domain,
+            'secure' => $secure,       // Only send over HTTPS if available
+            'httponly' => true,        // Not accessible via JavaScript
+            'samesite' => 'Strict'     // CSRF protection
+        ]);
     }
 
 }
